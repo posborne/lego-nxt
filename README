@@ -1,0 +1,6 @@
+Lego NXT
+
+The Lego NXT is a robotic kit which uses a main brick running an ARM7
+processor.  The code here is primarily written in NXC, a programming
+language (similar to C) for the NXT-G operating system (the NXT-G is
+what is provided by Lego).
