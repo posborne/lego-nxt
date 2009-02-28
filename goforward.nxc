@@ -1,0 +1,22 @@
+/* goforward.nxc
+
+This programs makes the robot go forward for two seconds, then
+after two seconds it reverses and goes backwards for two seconds.
+Crazy!
+
+Author: Paul Osborne
+Date: Feb 20, 2009
+*/
+
+#define LEFT_MOTOR OUT_C
+#define RIGHT_MOTOR OUT_B
+#define BOTH_MOTORS OUT_BC
+task main()
+{
+    OnFwd(LEFT_MOTOR, 75);
+    OnFwd(RIGHT_MOTOR, 75);
+    Wait(2000);
+    OnRev(BOTH_MOTORS, 75);
+    Wait(2000);
+    Off(BOTH_MOTORS);
+}

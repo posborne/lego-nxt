@@ -1,0 +1,36 @@
+/* ultrasonic_sensor.nxc
+
+This program is a basic practice program for getting input from the ultrasonic
+sensor in NXC.  It makes our little robot go straight until it is a distance
+of 25 cm from an obstacle.  At this point it turns until it sees a clear path
+(that is beyond the 25 cm).  The wait time is 20ms meaning that we are sampling
+at a rate of 50 samples/sec.  Not bad!
+
+Author: Paul Osborne
+Date: Feb 20, 2009
+*/
+
+#define ULTRASONIC_PORT S1
+#define OBSTACLE_THRESHOLD 25
+#define LEFT_MOTOR OUT_C
+#define RIGHT_MOTOR OUT_B
+#define BOTH_MOTORS OUT_BC
+
+task main()
+{
+    short ultrasonicCM; /* cm measured by ultrasonic */
+    SetSensorLowspeed(ULTRASONIC_PORT);
+    
+    while (1) {
+        ultrasonicCM = SensorUS(ULTRASONIC_PORT); /* read from ultrasonic port */
+        NumOut(0, LCD_LINE1, ultrasonicCM);
+        if (ultrasonicCM > OBSTACLE_THRESHOLD) {
+            OnFwd(BOTH_MOTORS, 75);
+        } else { /* we need to turn */
+            Off(BOTH_MOTORS);
+            OnFwd(LEFT_MOTOR, 25); // Torn right
+            OnRev(RIGHT_MOTOR, 25);
+        }
+        Wait(20); /* This is a good sample rate */
+    }
+}

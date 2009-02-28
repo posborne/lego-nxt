@@ -1,0 +1,21 @@
+/* accelerate.nxc
+
+This program starts our robot off slow and gradually increases the speed of the
+robot to a feverish pace.  It will continue at this feverish top speed for
+2 seconds before coming to a dead stop.
+
+Author: Paul Osborne
+Date: February 20, 2009
+*/
+
+#define BOTH_MOTORS OUT_BC
+
+task main()
+{
+    for(int power = 0; power <= 100; power++) {
+        OnFwd(BOTH_MOTORS, power);
+        Wait(100);
+    }
+    Wait(2000);
+    Off(BOTH_MOTORS);
+}
