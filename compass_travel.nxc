@@ -1,33 +1,92 @@
 /* compass_travel.nxc
 
-In this program our robot has a goal of making it as far north as possible
+In this program our robot has a goal of making it as far north as possible.
+This version of the program does this in a not very effective, but simple way.
+It starts out by turning until it is facing North and then drives that direction,
+checking for obstacles along the way.  When an obstacle is reached we go into
+a different mode for awhile.  This mode chooses and turns a random direction and
+makes some progress (ideally so we get to a place where we can head North again).
+We then give control back to our north travelling task until we run into another
+obstacle.
 
 Author: Paul Osborne
-Date: Feb 20, 2009
+Date: Feb 28, 2009
 */
 
 #define ULTRASONIC_PORT      S1
 #define COMPASS_PORT         S4
 #define OBSTACLE_THRESHOLD   25
+
 #define LEFT_MOTOR           OUT_C
 #define RIGHT_MOTOR          OUT_B
 #define BOTH_MOTORS          OUT_BC
 
-task main()
+#define COMPASS_TARGET      0
+#define COMPASS_THRESHOLD   30
+#define COMPASS_TARGET_MAX  ((COMPASS_TARGET + COMPASS_THRESHOLD) % 360)
+#define COMPASS_TARGET_MIN  ((COMPASS_TARGET - COMPASS_THRESHOLD) % 360)
+
+#define EXPLORATORY_ITERATIONS 100
+#define DIRECTION_LEFT  0
+#define DIRECTION_RIGHT 1
+#define TURN_RIGHT() \
+    OnFwd(LEFT_MOTOR, 25);OnRev(RIGHT_MOTOR, 25)
+#define TURN_LEFT() \
+    OnFwd(RIGHT_MOTOR, 25);OnRev(LEFT_MOTOR, 25)
+
+mutex motorMutex;
+
+void ExploreFreely() {
+   short ultrasonicCM;
+   int direction = Random(1);
+   for (int its = 0; its < EXPLORATORY_ITERATIONS; its++) {
+       ultrasonicCM = SensorUS(ULTRASONIC_PORT);
+       if (ultrasonicCM > OBSTACLE_THRESHOLD) {
+           OnFwdSync(BOTH_MOTORS, 75, 0);
+       } else { /* There is an obstacle */
+           if (direction == DIRECTION_LEFT) {
+               TURN_LEFT();
+           } else {
+               TURN_RIGHT();
+           }
+       }
+       Wait(20);
+   }
+}
+
+task goNorth()
 {
     short ultrasonicCM; /* cm measured by ultrasonic */
-    SetSensorLowspeed(ULTRASONIC_PORT);
+    short compassValue;
     
-    while (1) {
+    while (true) {
+        // display ultrasonic status
         ultrasonicCM = SensorUS(ULTRASONIC_PORT); /* read from ultrasonic port */
-        NumOut(0, LCD_LINE1, ultrasonicCM);
-        if (ultrasonicCM > OBSTACLE_THRESHOLD) {
-            OnFwd(BOTH_MOTORS, 75);
-        } else { /* we need to turn */
-            Off(BOTH_MOTORS);
-            OnFwd(LEFT_MOTOR, 25); // Torn right
-            OnRev(RIGHT_MOTOR, 25);
+        TextOut(0, LCD_LINE1, "Ultrasonic: ");
+        NumOut(25, LCD_LINE3, ultrasonicCM);
+
+        // display compass status
+        compassValue = SensorHTCompass(COMPASS_PORT);
+        TextOut(0, LCD_LINE5, "Compass: ");
+        NumOut(25, LCD_LINE7, compassValue);
+
+        // are we facing North? Make it be so!
+        if (compassValue > COMPASS_TARGET_MIN && compassValue < COMPASS_TARGET_MAX) {
+            if (ultrasonicCM > OBSTACLE_THRESHOLD) {
+                OnFwdSync(BOTH_MOTORS, 75, 0);
+            } else { /* There is an obstacle */
+                ExploreFreely();
+            }
+        } else {
+            TURN_RIGHT();
         }
         Wait(20); /* This is a good sample rate */
     }
+}
+
+task main()
+{
+    Precedes(goNorth);
+    SetSensorLowspeed(ULTRASONIC_PORT);
+    SetSensorLowspeed(COMPASS_PORT);
 }

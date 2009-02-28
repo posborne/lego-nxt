@@ -28,7 +28,7 @@ task main()
             OnFwd(BOTH_MOTORS, 75);
         } else { /* we need to turn */
             Off(BOTH_MOTORS);
-            OnFwd(LEFT_MOTOR, 25); // Torn right
+            OnFwd(LEFT_MOTOR, 25); // Turn right
             OnRev(RIGHT_MOTOR, 25);
         }
         Wait(20); /* This is a good sample rate */
