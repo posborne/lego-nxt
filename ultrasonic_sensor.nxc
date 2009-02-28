@@ -10,11 +10,11 @@ Author: Paul Osborne
 Date: Feb 20, 2009
 */
 
-#define ULTRASONIC_PORT S1
+#define ULTRASONIC_PORT    S1
 #define OBSTACLE_THRESHOLD 25
-#define LEFT_MOTOR OUT_C
-#define RIGHT_MOTOR OUT_B
-#define BOTH_MOTORS OUT_BC
+#define LEFT_MOTOR         OUT_C
+#define RIGHT_MOTOR        OUT_B
+#define BOTH_MOTORS        OUT_BC
 
 task main()
 {
