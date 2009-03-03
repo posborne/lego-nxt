@@ -1,0 +1,31 @@
+/* balanced_compass.nxc
+
+This application uses the compass sensor and tries to make progress in the
+direction it is facing when the application starts up.  Instead of stopping
+and turning when it is off in direction it  adjust the power of the wheels
+relative to the amount it is off.
+
+*/
+
+#define ULTRASONIC_PORT      S1
+#define COMPASS_PORT         S4
+#define OBSTACLE_THRESHOLD   25
+
+#define BASE_POWER 50
+
+#define LEFT_MOTOR           OUT_C
+#define RIGHT_MOTOR          OUT_B
+#define BOTH_MOTORS          OUT_BC
+
+task main() {
+    SetSensorLowspeed(COMPASS_PORT);
+    short target_direction = SensorHTCompass(COMPASS_PORT);
+    short current_direction;
+    short difference;
+    while (1) {
+        current_direction = SensorHTCompass(COMPASS_PORT);
+        difference = (target_direction - current_direction) % 360;
+        OnFwd(LEFT_MOTOR, BASE_POWER + difference / (180 - BASE_POWER));
+        OnFwd(RIGHT_MOTOR, BASE_POWER - difference / (180 - BASE_POWER));
+    }
+}
