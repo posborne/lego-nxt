@@ -34,8 +34,6 @@ Date: Feb 28, 2009
 #define TURN_LEFT() \
     OnFwd(RIGHT_MOTOR, 25);OnRev(LEFT_MOTOR, 25)
 
-mutex motorMutex;
-
 void ExploreFreely() {
    short ultrasonicCM;
    int direction = Random(1);
