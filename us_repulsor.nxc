@@ -1,0 +1,39 @@
+//////////////////////////////////////////////////////////////
+// Brian Turnquist
+// March 3, 2009
+//
+// A simple obstacle avoidance algorithm. There is a sensor array
+// on the front of the robot with a center ultrasonic sensor
+// pointed straight ahead and left and right ones at 45 to 60
+// degrees to either side of the center one.
+//////////////////////////////////////////////////////////////
+
+#define RIGHT_ULTRASONIC S1
+#define LEFT_ULTRASONIC S2
+#define CENTER_ULTRASONIC S3
+#define LEFT_MOTOR OUT_C
+#define RIGHT_MOTOR OUT_B
+
+#define CLEARANCE 50
+
+// Bound x so that it is at least 0 and at most z
+#define BOUND(x, z) (x < z ? (x < 0 ? 0 : x) : z)
+
+task main()
+{
+    SetSensorLowspeed(RIGHT_ULTRASONIC);
+    SetSensorLowspeed(LEFT_ULTRASONIC);
+    SetSensorLowspeed(CENTER_ULTRASONIC);
+    while ( 1 )
+    {
+        long RightValue = BOUND(SensorUS(RIGHT_ULTRASONIC), CLEARANCE) * 2;
+        long LeftValue = BOUND(SensorUS(LEFT_ULTRASONIC), CLEARANCE) * 2;
+        // TwistValue is 0 until you get within CLEARANCE of something being
+        // straight ahead. Then it gradually increases as you approach the object.
+        long TwistValue = (CLEARANCE - BOUND(SensorUS(CENTER_ULTRASONIC), CLEARANCE));
+
+        OnFwd(LEFT_MOTOR, RightValue - TwistValue);
+        OnFwd(RIGHT_MOTOR, LeftValue + TwistValue);
+    }
+}
+

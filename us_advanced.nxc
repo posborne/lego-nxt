@@ -1,0 +1,43 @@
+////////////////////////////////////////////////////////////////////////////////
+// Paul Osborne
+// March 09, 2009
+//
+// This is a slightly more intelligent implementation of an obstacle avoiding
+// bot based on the us_pulsar code by Dr. Brian Turnquist.  It attempts to
+// solve the problem of what to do when it sees an obstacle straight ahead.
+//
+// Previously a twist value based on the center ultrasonic sensor determine how
+// sharply the bot would turn to the left.  This does not seem to be exactly
+// how a creature/vehicle should deal with this situation.  Instead, we go to
+// the left and right ultrasonic array but look beyond the basic threshold in
+// use in other places.
+////////////////////////////////////////////////////////////////////////////////
+
+#define RIGHT_ULTRASONIC     S1
+#define LEFT_ULTRASONIC      S2
+#define CENTER_ULTRASONIC    S3
+#define LEFT_MOTOR           OUT_C
+#define RIGHT_MOTOR          OUT_B
+
+// Constants
+#define BASE_POWER 75
+
+// Bound x so that it is at least y and at most z
+#define BOUND(x, y, z) (x < z ? (x < y ? y : x) : z)
+
+task main() {
+    SetSensorLowspeed(RIGHT_ULTRASONIC);
+    SetSensorLowspeed(LEFT_ULTRASONIC);
+    SetSensorLowspeed(CENTER_ULTRASONIC);
+    
+    while ( 1 ) {
+        long RightValue = BOUND(SensorUS(RIGHT_ULTRASONIC), 0, 50) * 2;
+        long LeftValue = BOUND(SensorUS(LEFT_ULTRASONIC), 0, 50) * 2;
+        long CenterValue = 100 - BOUND(SensorUS(CENTER_ULTRASONIC), 0, 100);
+        
+        long TwistValue = (CenterValue <= 0) ? 0 : (SensorUS(RIGHT_ULTRASONIC) > SensorUS(LEFT_ULTRASONIC) ? CenterValue : -CenterValue);
+        
+        OnFwd(LEFT_MOTOR, BOUND(RightValue - TwistValue, 0, 100));
+        OnFwd(RIGHT_MOTOR, BOUND(LeftValue + TwistValue, 0, 100));
+    }
+}

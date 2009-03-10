@@ -1,0 +1,77 @@
+////////////////////////////////////////////////////////////////////////////////
+// Paul Osborne
+// March 09, 2009
+//
+// This software is for an NXT vehicle with an ultrasonic array of three sensors
+// along the front of the vehicle.  There is a center sensor pointed straight
+// ahead and two to the side pointed between 45 and 60 degrees from forward.
+//
+// In addition to the ultrasonic sensors, there is a compass sensor.  The goal
+// of the vehicle is to make progress in the direction the vehicle is pointed
+// when the program is started.
+////////////////////////////////////////////////////////////////////////////////
+
+#define RIGHT_ULTRASONIC     S1
+#define LEFT_ULTRASONIC      S2
+#define CENTER_ULTRASONIC    S3
+#define COMPASS_PORT         S4
+#define LEFT_MOTOR           OUT_C
+#define RIGHT_MOTOR          OUT_B
+
+// Give the element with the smallest absolute value
+#define ABSMIN(x, y) ((x < 0 ? -x : x) < (y < 0 ? -y : y) ? x : y)
+
+// Bound x so that it is at least y and at most z
+#define BOUND(x, y, z) (x < z ? (x < y ? y : x) : z)
+
+task main()
+{
+    SetSensorLowspeed(COMPASS_PORT);
+    SetSensorLowspeed(RIGHT_ULTRASONIC);
+    SetSensorLowspeed(LEFT_ULTRASONIC);
+    SetSensorLowspeed(CENTER_ULTRASONIC);
+    
+    long TargetHeading = SensorHTCompass(COMPASS_PORT);
+    
+    while ( 1 )
+    {
+        long RightValue = BOUND(SensorUS(RIGHT_ULTRASONIC), 0, 50) * 2;
+        long LeftValue = BOUND(SensorUS(LEFT_ULTRASONIC), 0, 50) * 2;
+        long CenterValue = BOUND(SensorUS(CENTER_ULTRASONIC), 0, 100);
+        long CurrentHeading = SensorHTCompass(COMPASS_PORT);
+        // TwistValue will be between 0, 100
+        long TwistValue = (50 - BOUND(CenterValue, 0, 50)) * 2;
+
+        // compass delta will be between -180 and +180
+        long CompassDelta = ABSMIN((CurrentHeading - TargetHeading), (TargetHeading + 360 - CurrentHeading));
+        long CompassTwist = BOUND(CompassDelta / 3, -50, 50);
+        
+        long RP = (TwistValue * BOUND((LeftValue + TwistValue), 0, 100) +
+                  (100 - TwistValue) * (LeftValue + CompassTwist)) / 100;
+                  
+        long LP = (TwistValue * (RightValue - TwistValue) +
+                  (100 - TwistValue) * BOUND((RightValue - CompassTwist), 0, 100)) / 100;
+                  
+        OnFwd(RIGHT_MOTOR, RP);
+        OnFwd(LEFT_MOTOR, LP);
+
+
+        ClearScreen();
+        TextOut(0, LCD_LINE1, "Target: ");
+        NumOut(50, LCD_LINE1, TargetHeading);
+        TextOut(0, LCD_LINE2, "Heading: ");
+        NumOut(50, LCD_LINE2, CurrentHeading);
+        TextOut(0, LCD_LINE3, "Delta: ");
+        NumOut(50, LCD_LINE3, CompassDelta);
+        TextOut(0, LCD_LINE4, "LP: ");
+        NumOut(50, LCD_LINE4, LP);
+        TextOut(0, LCD_LINE5, "RP: ");
+        NumOut(50, LCD_LINE5, RP);
+        TextOut(0, LCD_LINE6, "Twist: ");
+        NumOut(50, LCD_LINE6, TwistValue);
+    }
+}
+
+
+
+
