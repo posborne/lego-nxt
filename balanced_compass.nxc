@@ -35,8 +35,6 @@ task main() {
     
     while ( 1 )
     {
-        long USRight = SensorUS(RIGHT_ULTRASONIC);
-        long USLeft = SensorUS(LEFT_ULTRASONIC);
         long USCenter = SensorUS(CENTER_ULTRASONIC);
         long CurrentHeading = SensorHTCompass(COMPASS_PORT);
         
@@ -46,31 +44,24 @@ task main() {
 
         // Calculate Compass Twist
         long CompassDelta = ABSMIN((CurrentHeading - TargetHeading), (TargetHeading + 360 - CurrentHeading));
-        long CompassTwist = CompassDelta * 5 ;
-
-        // Calculate L/R US Sensor Twist
-        long LRTwist = (20 * BOUND(USLeft, 0, CLEARANCE)) -
-                   (20 * BOUND(USRight, 0, CLEARANCE));
-
-        // Calculate Center Twist (This will be between 0 and 1000)
-        long CenterTwist = 20 * BOUND(USCenter, 0, CLEARANCE);
+        
+        long RightValue = BOUND(SensorUS(RIGHT_ULTRASONIC), 0, CLEARANCE) +
+                          BOUND(CompassDelta, -CLEARANCE, CLEARANCE);
+        long LeftValue = BOUND(SensorUS(LEFT_ULTRASONIC), 0, CLEARANCE) +
+                          BOUND(CompassDelta, -CLEARANCE, CLEARANCE);
+        
+        long CenterTwist = (CLEARANCE - BOUND(SensorUS(CENTER_ULTRASONIC), 0, CLEARANCE));
 
         // We place more emphasis on turning as we draw near to obstacles
         // and more on the compass when not
-        long FinalTwist = ((10 - (CenterTwist / 100)) * CompassTwist / 10 +
-                      (CenterTwist / 100) * (LRTwist / 100)) / 10;
+        long FinalTwist = CenterTwist;
 
-        long BasePower = 100 - ABS(FinalTwist);
-        OnFwd(LEFT_MOTOR, BOUND(BasePower - FinalTwist, 0, 100));
-        OnFwd(RIGHT_MOTOR, BOUND(BasePower + FinalTwist, 0, 100));
+        OnFwd(LEFT_MOTOR, BOUND(RightValue - FinalTwist, 0, 100));
+        OnFwd(RIGHT_MOTOR, BOUND(LeftValue + FinalTwist, 0, 100));
 
         ClearScreen();
-        TextOut(0, LCD_LINE1, "ComT: ");
-        NumOut(50, LCD_LINE1, CompassTwist);
-        TextOut(0, LCD_LINE2, "LRT: ");
-        NumOut(50, LCD_LINE2, LRTwist);
-        TextOut(0, LCD_LINE3, "CenT: ");
-        NumOut(50, LCD_LINE3, CenterTwist);
+        TextOut(0, LCD_LINE1, "ComD: ");
+        NumOut(50, LCD_LINE1, CompassDelta);
         TextOut(0, LCD_LINE5, "FT: ");
         NumOut(50, LCD_LINE5, FinalTwist);
     }

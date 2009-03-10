@@ -1,0 +1,49 @@
+////////////////////////////////////////////////////////////////////////////////
+// Paul Osborne
+// March 09, 2009
+//
+// This software is for an NXT vehicle with (at least) a compass sensor.  It is
+// a very simple vehicle that makes progress in the direction (or heading) that
+// is first registered when the program starts.
+//
+// The vehicle does not use ultrasonic so it will not avoid obstacles.  If you
+// pick up the vehicle and face it a different direction, it should adjust.
+////////////////////////////////////////////////////////////////////////////////
+
+// I/O Port Mappings
+#define COMPASS_PORT         S4
+#define LEFT_MOTOR           OUT_C
+#define RIGHT_MOTOR          OUT_B
+
+// Constants
+#define BASE_POWER 75
+
+// Give the element with the smallest absolute value
+#define ABSMIN(x, y) ((x < 0 ? -x : x) < (y < 0 ? -y : y) ? x : y)
+
+// Bound x so that it is at least y and at most z
+#define BOUND(x, y, z) (x < z ? (x < y ? y : x) : z)
+
+task main() {
+    SetSensorLowspeed(COMPASS_PORT);
+    
+    long TargetHeading = SensorHTCompass(COMPASS_PORT);
+    
+    while (1) {
+        long CurrentHeading = SensorHTCompass(COMPASS_PORT);
+
+        // compass delta will be between -180 and +180
+        long CompassDelta = ABSMIN((CurrentHeading - TargetHeading), (TargetHeading + 360 - CurrentHeading));
+
+        OnFwd(LEFT_MOTOR, BASE_POWER + BOUND(CompassDelta, BASE_POWER, 100 - BASE_POWER));
+        OnFwd(RIGHT_MOTOR, BASE_POWER -; BOUND(CompassDelta, BASE_POWER, 100 - BASE_POWER));
+        
+        ClearScreen();
+        TextOut(0, LCD_LINE1, "Target: ");
+        NumOut(50, LCD_LINE1, TargetHeading);
+        TextOut(0, LCD_LINE3, "Heading: ");
+        NumOut(50, LCD_LINE3, CurrentHeading);
+        TextOut(0, LCD_LINE5, "Delta: ");
+        NumOut(50, LCD_LINE5, CompassDelta);
+    }
+}
