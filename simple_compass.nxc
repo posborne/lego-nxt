@@ -35,15 +35,21 @@ task main() {
         // compass delta will be between -180 and +180
         long CompassDelta = ABSMIN((CurrentHeading - TargetHeading), (TargetHeading + 360 - CurrentHeading));
 
-        OnFwd(LEFT_MOTOR, BASE_POWER + BOUND(CompassDelta, BASE_POWER, 100 - BASE_POWER));
-        OnFwd(RIGHT_MOTOR, BASE_POWER -; BOUND(CompassDelta, BASE_POWER, 100 - BASE_POWER));
+        long RP =  BASE_POWER + BOUND(2 * CompassDelta / 3, -25, 75);
+        long LP =  BASE_POWER - BOUND(2 * CompassDelta / 3, -75, 25);
+        OnFwd(LEFT_MOTOR, LP);
+        OnFwd(RIGHT_MOTOR, RP);
         
         ClearScreen();
         TextOut(0, LCD_LINE1, "Target: ");
         NumOut(50, LCD_LINE1, TargetHeading);
-        TextOut(0, LCD_LINE3, "Heading: ");
-        NumOut(50, LCD_LINE3, CurrentHeading);
-        TextOut(0, LCD_LINE5, "Delta: ");
-        NumOut(50, LCD_LINE5, CompassDelta);
+        TextOut(0, LCD_LINE2, "Heading: ");
+        NumOut(50, LCD_LINE2, CurrentHeading);
+        TextOut(0, LCD_LINE3, "Delta: ");
+        NumOut(50, LCD_LINE3, CompassDelta);
+        TextOut(0, LCD_LINE4, "LP: ");
+        NumOut(50, LCD_LINE4, LP);
+        TextOut(0, LCD_LINE5, "RP: ");
+        NumOut(50, LCD_LINE5, RP);
     }
 }
